@@ -1,4 +1,3 @@
-# ui_app.py
 from typing import Optional
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
@@ -65,6 +64,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setWindowTitle("환경설정")
         self.resize(640, 520)
 
+        self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
+
         lay = QtWidgets.QVBoxLayout(self)
         self.tabs = QtWidgets.QTabWidget(); lay.addWidget(self.tabs)
 
@@ -86,10 +87,14 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # 버튼
         btns = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Apply | QtWidgets.QDialogButtonBox.Cancel, parent=self
+            QtWidgets.QDialogButtonBox.Save | QtWidgets.QDialogButtonBox.Cancel, parent=self
         )
+
+        self.btn_reset = QtWidgets.QPushButton("초기화")
+        btns.addButton(self.btn_reset, QtWidgets.QDialogButtonBox.ResetRole)
+        self.btn_reset.clicked.connect(self._reset_to_defaults)
+
         btns.accepted.connect(self._save_and_close)  # Save
-        btns.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(self._apply_only)  # Apply
         btns.rejected.connect(self.reject)  # Cancel
         lay.addWidget(btns)
 
@@ -160,10 +165,30 @@ class SettingsDialog(QtWidgets.QDialog):
     # --- 정보 ---
     def _build_tab_info(self):
         lay = QtWidgets.QVBoxLayout(self.tab_info)
-        lay.addStretch(1)
-        lbl = QtWidgets.QLabel("정보 탭은 준비 중입니다.")
-        lbl.setAlignment(Qt.AlignCenter)
-        lay.addWidget(lbl)
+        lay.setContentsMargins(16, 16, 16, 16)
+        lay.setSpacing(10)
+
+        title = QtWidgets.QLabel("정보")
+        f = title.font(); f.setPointSize(12); f.setBold(True)
+        title.setFont(f)
+
+        self.lbl_github = QtWidgets.QLabel()
+        self.lbl_github.setTextFormat(Qt.RichText)
+        self.lbl_github.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.lbl_github.setOpenExternalLinks(True)
+
+        repo_url = "https://github.com/amature0000/OCR-translate"
+        self.lbl_github.setText(
+            f'프로젝트 깃허브: <a href="{repo_url}">{repo_url}</a>'
+        )
+
+        # (선택) 추가 정보
+        self.lbl_desc = QtWidgets.QLabel("이 프로젝트는 개인이 사용하기 위한 프로젝트입니다.")
+        self.lbl_desc.setStyleSheet("color: #6b7785;")
+
+        lay.addWidget(title)
+        lay.addWidget(self.lbl_github)
+        lay.addWidget(self.lbl_desc)
         lay.addStretch(1)
 
     def _load_values(self):
@@ -184,15 +209,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
         self.mgr.save()
 
-
-    def _apply_only(self):
-        try:
-            self._apply_to_manager()
-            self.settingsSaved.emit()
-            QtWidgets.QMessageBox.information(self, "저장", "설정이 적용되었습니다.")
-        except Exception as e:
-            QtWidgets.QMessageBox.warning(self, "오류", str(e))
-
     def _save_and_close(self):
         try:
             self._apply_to_manager()
@@ -200,6 +216,27 @@ class SettingsDialog(QtWidgets.QDialog):
             self.accept()
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, "오류", str(e))
+
+    def _reset_to_defaults(self):
+        reply = QtWidgets.QMessageBox.question(
+            self, "초기화 확인", "모든 설정을 기본값으로 되돌릴까요?\n(저장은 누를 때 적용됩니다.)",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+
+        defaults = SettingsManager.default_settings()
+        # UI에 기본값 주입
+        self.edt_hotkey.setText(defaults.hotkey_combo)
+        self.txt_commands.setPlainText(defaults.system_prompt)
+        self.edt_model.setText(defaults.gemini_model)
+        self.edt_key.setText(defaults.gemini_api_key)
+
+    def _apply_to_manager(self):
+        self.mgr.set_hotkey_combo(self.edt_hotkey.text().strip())
+        self.mgr.set_system_prompt(self.txt_commands.toPlainText())
+        self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
+        self.mgr.save()
 
 
 # ---- 메인 윈도우 ----
@@ -210,7 +247,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, settings: SettingsManager):
         super().__init__()
         self.mgr = settings
-        self.setWindowTitle("OCR Minimal (RegisterHotKey + Monitor Select)")
+        self.setWindowTitle("OCR-translator")
         self.resize(820, 540)
 
         self.selected_screen_idx: int = 0

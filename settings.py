@@ -1,4 +1,3 @@
-# settings.py
 import json, os
 from dataclasses import dataclass, asdict
 from typing import Optional
@@ -11,11 +10,16 @@ class AppSettings:
     hotkey_combo: str = "ctrl+shift+c"
     # 2) 프롬프트
     system_prompt: str = (
-        "You are a precise translator. Keep meaning, tone, and inline code.\n"
-        "Preserve punctuation and formatting. Return only the translated text."
+        "너는 FPS 게임 Arena Breakout: Infinite의 공식 번역가다.\n"
+        "이름, 제목 등의 고유명사는 번역하지 말고 영문 그대로 제공하라.\n"
+        "UI 요소, 버튼, 설정 이름 등은 가능한 직역하고 의역하지 마라.\n"
+        "아이템, 시스템 옵션, 미션 요구사항 등 인게임 시스템 메시지는 가벼운 경어체로 간결하고 직관적으로 번역하라.\n"
+        "미션 스토리, NPC 대사, NPC 메시지, 대화 내용 등에 대해서는 경어체를 절대 사용하지 말고, 상황과 캐릭터에 맞는 자연스럽고 몰입감 있는 말투로 번역하라.\n"
+        "NPC 대사에서는 존댓말(하세요, 입니다, 해주세요 등)을 절대 사용하지 말고, 반드시 반말이나 중립적인 구어체로 번역하라.\n"
+        "출력 형식은 주어진 문장에 대한 한글 번역만을 담고 있어야 하며, 이외의 단어나 문장이 들어가서는 안 된다.\n"
     )
     # 3) API
-    gemini_model: str = "gemini-1.5-pro"
+    gemini_model: str = "gemini-2.5-flash-lite-preview-06-17"
     gemini_api_key: str = ""
 
 class SettingsManager:
@@ -83,7 +87,7 @@ class SettingsManager:
         self._settings.gemini_model = model
         self._settings.gemini_api_key = api_key
 
-    # ---------- update ----------
+
     def update(self, *, hotkey_combo: Optional[str]=None, system_prompt: Optional[str]=None,
                gemini_model: Optional[str]=None, gemini_api_key: Optional[str]=None):
         if hotkey_combo is not None:
@@ -93,3 +97,12 @@ class SettingsManager:
         if gemini_model is not None or gemini_api_key is not None:
             self.set_gemini(gemini_model or self.gemini_model, gemini_api_key or self.gemini_api_key)
         self.save()
+
+    @staticmethod
+    def default_settings() -> AppSettings:
+        return AppSettings()
+    
+    def reset_to_defaults(self, persist: bool = False):
+        self._settings = AppSettings()
+        if persist:
+            self.save()
