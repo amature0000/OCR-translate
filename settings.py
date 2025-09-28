@@ -1,8 +1,10 @@
 import json, os
 from dataclasses import dataclass, asdict
 from typing import Optional
+from PyQt5 import QtGui
 
 DEFAULT_PATH = os.path.join(os.path.expanduser("~"), ".ocr_translate_settings.json")
+ASSET_FONTS_DIR = os.path.join(os.path.dirname(__file__), "fonts")
 
 @dataclass
 class AppSettings:
@@ -11,7 +13,7 @@ class AppSettings:
     # 2) 프롬프트
     system_prompt: str = (
         "너는 FPS 게임 Arena Breakout: Infinite의 공식 번역가다.\n"
-        "이름, 제목 등의 고유명사는 번역하지 말고 영문 그대로 제공하라.\n"
+        "이름 등의 고유명사는 번역하지 말고 영문 그대로 제공하라.\n"
         "UI 요소, 버튼, 설정 이름 등은 가능한 직역하고 의역하지 마라.\n"
         "아이템, 시스템 옵션, 미션 요구사항 등 인게임 시스템 메시지는 가벼운 경어체로 간결하고 직관적으로 번역하라.\n"
         "미션 스토리, NPC 대사, NPC 메시지, 대화 내용 등에 대해서는 경어체를 절대 사용하지 말고, 상황과 캐릭터에 맞는 자연스럽고 몰입감 있는 말투로 번역하라.\n"
@@ -21,12 +23,38 @@ class AppSettings:
     # 3) API
     gemini_model: str = "gemini-2.5-flash-lite-preview-06-17"
     gemini_api_key: str = ""
+    
+    # 4) overlay
+    font_family: str = "Malgun Gothic"
+    font_size: int = 14
+    use_overlay_layout: bool = True
 
 class SettingsManager:
     def __init__(self, path: str = DEFAULT_PATH):
         self.path = path
         self._settings = AppSettings()
+        self._asset_font_families = []  # assets/fonts 에서 로드된 family 목록
+        self._load_asset_fonts()
         self.load()
+
+    # ---------- asset fonts ----------
+    def _load_asset_fonts(self):
+        self._asset_font_families.clear()
+        if not os.path.isdir(ASSET_FONTS_DIR):
+            return
+        for fn in os.listdir(ASSET_FONTS_DIR):
+            if not fn.lower().endswith((".ttf", ".otf", ".ttc", ".otc")):
+                continue
+            p = os.path.join(ASSET_FONTS_DIR, fn)
+            try:
+                fid = QtGui.QFontDatabase.addApplicationFont(p)
+                if fid != -1:
+                    fams = QtGui.QFontDatabase.applicationFontFamilies(fid)
+                    self._asset_font_families.extend(fams)
+            except Exception:
+                pass
+
+        self._asset_font_families = sorted(set(self._asset_font_families))
 
     # ---------- basic I/O ----------
     def load(self):
@@ -72,7 +100,23 @@ class SettingsManager:
     def gemini_api_key(self) -> str:
         return self._settings.gemini_api_key
 
-    # ---------- setters (with minimal validation) ----------
+    @property
+    def font_family(self) -> str:
+        return self._settings.font_family
+    
+    @property
+    def font_size(self) -> int:
+        return self._settings.font_size
+
+    @property
+    def asset_font_families(self):
+        return list(self._asset_font_families)
+    
+    @property
+    def use_overlay_layout(self) -> bool:
+        return self._settings.use_overlay_layout
+    
+    # ---------- setters ----------
     def set_hotkey_combo(self, combo: str):
         if not combo or "+" not in combo:
             raise ValueError("핫키는 'ctrl+shift+f1' 형식이어야 합니다.")
@@ -87,17 +131,33 @@ class SettingsManager:
         self._settings.gemini_model = model
         self._settings.gemini_api_key = api_key
 
+    def set_font(self, family, size):
+        family = (family or "").strip()
+        if not family: return
+        if not(6<= int(size) <= 96): return
+
+        self._settings.font_family = family
+        self._settings.font_size = int(size)
+
+    def set_use_overlay_layout(self, enabled: bool):
+        self._settings.use_overlay_layout = bool(enabled)
 
     def update(self, *, hotkey_combo: Optional[str]=None, system_prompt: Optional[str]=None,
-               gemini_model: Optional[str]=None, gemini_api_key: Optional[str]=None):
+               gemini_model: Optional[str]=None, gemini_api_key: Optional[str]=None,
+               font_family: Optional[str]=None, font_size: Optional[int]=None,
+               use_overlay_layout: Optional[bool]=None):
         if hotkey_combo is not None:
             self.set_hotkey_combo(hotkey_combo)
         if system_prompt is not None:
             self.set_system_prompt(system_prompt)
         if gemini_model is not None or gemini_api_key is not None:
             self.set_gemini(gemini_model or self.gemini_model, gemini_api_key or self.gemini_api_key)
+        if (font_family is not None) or (font_size is not None):
+            self.set_font(font_family or self.font_family, font_size or self.font_size)
+        if use_overlay_layout is not None:
+            self.set_use_overlay_layout(use_overlay_layout)
         self.save()
-
+        
     @staticmethod
     def default_settings() -> AppSettings:
         return AppSettings()

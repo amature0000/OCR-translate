@@ -8,6 +8,7 @@ from ui_app import MainWindow
 from ocr_win import windows_ocr_sync
 from hotkey_manager import WinHotkeyManager
 from settings import SettingsManager
+from overlay import OverlayWindow
 from llm_api import LLMClient, LLMError
 
 def capture_rect_global(rect) -> Image.Image:
@@ -30,8 +31,19 @@ def main():
     # LLM 클라이언트
     llm = LLMClient(mgr)
 
+    # overlay
+    w.current_overlay = None
+
     # 2) OCR 연결
     def on_rect_selected(rect_global):
+        if getattr(w, "current_overlay", None):
+            try: w.current_overlay.close()
+            except Exception: pass
+            w.current_overlay = None
+        if mgr.use_overlay_layout:
+            overlay = OverlayWindow(rect_global, "번역 중...", font_family=mgr.font_family, font_size=mgr.font_size)
+            w.current_overlay = overlay
+
         img = capture_rect_global(rect_global)
         try:
             result = windows_ocr_sync(img, w.get_lang_tag())
@@ -43,15 +55,23 @@ def main():
             return
         try:
             translated = llm.translate(ocr_text)
+            if mgr.use_overlay_layout: overlay.set_text(translated)
             w.show_text(translated)
         except LLMError as e:
             w.show_text(f"번역 실패: {e}")
     w.rectSelected.connect(on_rect_selected)
 
-    # 3) 전역 핫키 등록 (설정 값 사용)
+    # 3) 전역 핫키 등록
+    before_key = None
     hk = None
     def register_hotkey():
         nonlocal hk
+        nonlocal before_key
+        if before_key == mgr.hotkey_combo: 
+            before_key = mgr.hotkey_combo
+            return
+        
+        before_key = mgr.hotkey_combo
         if hk is not None:
             hk.stop(); hk = None
 
@@ -66,12 +86,13 @@ def main():
             reason = hk.last_error or "알 수 없는 이유"
             w.statusBar().showMessage(f"전역 핫키 등록 실패: {reason}", 6000)
             QtWidgets.QMessageBox.warning(w, "핫키 등록 실패", f"{mgr.hotkey_combo}\n\n{reason}")
+        
     register_hotkey()
 
-    # 4) 설정 저장/적용 시 핫키 재등록
+    # 4) 설정 저장
     def on_settings_updated():
         nonlocal llm
-        mgr.load()          # 파일에서 재반영(다른 프로세스와 공유 고려)
+        mgr.load()
         register_hotkey()   # 새 조합으로 재등록
         llm = LLMClient(mgr)# llm 클라이언트 재구성
         

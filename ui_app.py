@@ -54,7 +54,7 @@ class SelectionOverlay(QtWidgets.QWidget):
         return QtCore.QRect(min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1))
 
 
-# ---- 환경설정 다이얼로그 ----
+# ---- 환경설정 ----
 class SettingsDialog(QtWidgets.QDialog):
     settingsSaved = QtCore.pyqtSignal()
 
@@ -81,7 +81,11 @@ class SettingsDialog(QtWidgets.QDialog):
         self.tab_api = QtWidgets.QWidget(); self.tabs.addTab(self.tab_api, "API")
         self._build_tab_api()
 
-        # Tab 4: 정보
+        # Tab 4: 폰트
+        self.tab_display = QtWidgets.QWidget(); self.tabs.addTab(self.tab_display, "폰트")
+        self._build_tab_display()
+
+        # Tab 5: 정보
         self.tab_info = QtWidgets.QWidget(); self.tabs.addTab(self.tab_info, "정보")
         self._build_tab_info()
 
@@ -162,6 +166,24 @@ class SettingsDialog(QtWidgets.QDialog):
         form.addRow("모델", self.edt_model)
         form.addRow("API 키", self.edt_key)
 
+    # --- 폰트 ---
+    def _build_tab_display(self):
+        form = QtWidgets.QFormLayout(self.tab_display)
+
+        self.cmb_font = QtWidgets.QComboBox()
+        fams = self.mgr.asset_font_families
+        self.cmb_font.addItems(fams)
+
+        self.spn_font_size = QtWidgets.QSpinBox()
+        self.spn_font_size.setRange(6, 96)
+        self.spn_font_size.setSingleStep(1)
+
+        form.addRow("폰트", self.cmb_font)
+        form.addRow("크기(pt)", self.spn_font_size)
+        self.chk_overlay = QtWidgets.QCheckBox("오버레이 레이아웃 사용")
+        self.chk_overlay.setToolTip("해제하면 캡처 후 메인창에만 번역 결과를 표시합니다.")
+        form.addRow("", self.chk_overlay)
+
     # --- 정보 ---
     def _build_tab_info(self):
         lay = QtWidgets.QVBoxLayout(self.tab_info)
@@ -182,7 +204,7 @@ class SettingsDialog(QtWidgets.QDialog):
             f'프로젝트 깃허브: <a href="{repo_url}">{repo_url}</a>'
         )
 
-        # (선택) 추가 정보
+        # 정보
         self.lbl_desc = QtWidgets.QLabel("이 프로젝트는 개인이 사용하기 위한 프로젝트입니다.")
         self.lbl_desc.setStyleSheet("color: #6b7785;")
 
@@ -199,15 +221,13 @@ class SettingsDialog(QtWidgets.QDialog):
         # API
         self.edt_model.setText(self.mgr.gemini_model)
         self.edt_key.setText(self.mgr.gemini_api_key)
-
-    def _apply_to_manager(self):
-        # 핫키
-        self.mgr.set_hotkey_combo(self._get_hotkey_combo_from_ui())
-        # Commands
-        self.mgr.set_system_prompt(self.txt_commands.toPlainText())
-        # API
-        self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
-        self.mgr.save()
+        # 폰트
+        idx = self.cmb_font.findText(self.mgr.font_family, Qt.MatchFixedString)
+        if idx >= 0:
+            self.cmb_font.setCurrentIndex(idx)
+        else:
+            self.cmb_font.setCurrentIndex(0)
+        self.spn_font_size.setValue(self.mgr.font_size)
 
     def _save_and_close(self):
         try:
@@ -236,6 +256,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.mgr.set_hotkey_combo(self.edt_hotkey.text().strip())
         self.mgr.set_system_prompt(self.txt_commands.toPlainText())
         self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
+        self.mgr.set_font(self.cmb_font.currentText(), self.spn_font_size.value())
         self.mgr.save()
 
 
@@ -252,6 +273,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.selected_screen_idx: int = 0
         self.sel_overlay: Optional[SelectionOverlay] = None
+        self.current_overlay = None
 
         # 중앙 UI
         central = QtWidgets.QWidget(); v = QtWidgets.QVBoxLayout(central)
