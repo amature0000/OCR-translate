@@ -1,4 +1,5 @@
 # OCR-translator
+[![GitHub downloads](https://img.shields.io/github/downloads/amature0000/OCR-translate/total.svg?logo=github)](https://github.com/amature0000/OCR-translate/releases)
 
 OCR-translator는 OCR을 이용해 화면의 텍스트를 추출 후 번역하는 간단한 프로그램입니다.
 
