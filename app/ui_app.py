@@ -1,7 +1,9 @@
 from typing import Optional
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
-from settings import SettingsManager
+from settings import SettingsManager, ASSET_FONTS_DIR
+import os
+import html
 
 # ---- 캡처 오버레이 ----
 class SelectionOverlay(QtWidgets.QWidget):
@@ -183,6 +185,33 @@ class SettingsDialog(QtWidgets.QDialog):
         self.chk_overlay = QtWidgets.QCheckBox("오버레이 레이아웃 사용")
         self.chk_overlay.setToolTip("해제하면 캡처 후 메인창에만 번역 결과를 표시합니다.")
         form.addRow("", self.chk_overlay)
+        
+        fonts_dir = os.path.abspath(ASSET_FONTS_DIR)
+        file_url = QtCore.QUrl.fromLocalFile(fonts_dir).toString()
+        native_path = QtCore.QDir.toNativeSeparators(fonts_dir)
+        
+        self.lbl_font_hint = QtWidgets.QLabel(self.tab_display)
+        self.lbl_font_hint.setWordWrap(True)
+        self.lbl_font_hint.setTextFormat(Qt.RichText)
+        self.lbl_font_hint.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.lbl_font_hint.setOpenExternalLinks(True)
+
+        # 클릭 시 탐색기에서 폴더 열림
+        self.lbl_font_hint.setText(
+            f'원하는 폰트를 추가하려면 '
+            f'<a href="{file_url}">프로그램 설치 경로</a>에 원하는 폰트를 다운로드하세요.'
+        )
+
+        # 실제 경로를 옅게 표시(선택)
+        self.lbl_font_path = QtWidgets.QLabel(self.tab_display)
+        self.lbl_font_path.setTextFormat(Qt.RichText)
+        self.lbl_font_path.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.lbl_font_path.setStyleSheet("color:#888;")
+        self.lbl_font_path.setText(f'경로: <code>{html.escape(native_path)}</code>')
+
+        # 라벨들은 설명성이라 라벨명 없이 한 줄씩 추가
+        form.addRow(self.lbl_font_hint)
+        form.addRow(self.lbl_font_path)
 
     # --- 정보 ---
     def _build_tab_info(self):
