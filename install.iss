@@ -14,7 +14,6 @@ SetupIconFile=app\icon.ico
 [Files]
 Source: "Python\*"; DestDir: "{app}\python"; Flags: recursesubdirs
 Source: "app\*";       DestDir: "{app}\app"; Flags: recursesubdirs
-Source: "app\fonts\*"; DestDir: "{app}\fonts"; Flags: recursesubdirs
 
 [Run]
 ; 1) pip 설치
