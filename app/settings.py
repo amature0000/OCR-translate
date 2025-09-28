@@ -3,7 +3,16 @@ from dataclasses import dataclass, asdict
 from typing import Optional
 from PyQt5 import QtGui
 
-DEFAULT_PATH = os.path.join(os.path.expanduser("~"), ".ocr_translate_settings.json")
+
+APP_NAME = "OCR Translate"
+
+def _appdata_dir() -> str:
+    base = os.environ.get("APPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
+    d = os.path.join(base, APP_NAME)
+    os.makedirs(d, exist_ok=True)
+    return d
+
+DEFAULT_PATH = os.path.join(_appdata_dir(), "settings.json")
 ASSET_FONTS_DIR = os.path.join(os.path.dirname(__file__), "fonts")
 
 @dataclass
@@ -87,10 +96,6 @@ class SettingsManager:
     @property
     def system_prompt(self) -> str:
         return self._settings.system_prompt
-
-    @property
-    def api_provider(self) -> str:
-        return self._settings.api_provider
 
     @property
     def gemini_model(self) -> str:
