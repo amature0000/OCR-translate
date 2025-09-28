@@ -28,8 +28,8 @@ OCR-translator 프로젝트는 이러한 문제점을 해결하기 위해 개발
 이 프로젝트는 개인이 사용하기 위한 목적으로 개발되었습니다. 일부 기능은 미구현으로 남을 수 있으며, 이 프로젝트를 참조하여 개인 프로젝트에 활용할 수 있습니다.
 
 # Demonstration
+![img](assets/Animation2.webp)
 ![img](assets/img1.png)
+![img](assets/img5.png)
 ![img](assets/img2.png)
 ![img](assets/img3.png)
-![img](assets/img4.png)
-![img](assets/img5.png)
