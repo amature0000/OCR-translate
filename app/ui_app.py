@@ -128,14 +128,12 @@ class SettingsDialog(QtWidgets.QDialog):
         lay.setSpacing(8)
         lbl_head = QtWidgets.QLabel("LLM에 다음과 같이 전달됩니다.")
 
-        # 1) Commands
         lbl_cmd = QtWidgets.QLabel("Commands:")
         lbl_cmd.setStyleSheet("font-weight: 600;")
         self.txt_commands = QtWidgets.QPlainTextEdit()
         self.txt_commands.setPlaceholderText("")
         self.txt_commands.setMinimumHeight(160)
 
-        
         lbl_ttt = QtWidgets.QLabel("Text to Translate:")
         lbl_ttt.setStyleSheet("font-weight: 600;")
         
@@ -196,20 +194,17 @@ class SettingsDialog(QtWidgets.QDialog):
         self.lbl_font_hint.setTextInteractionFlags(Qt.TextBrowserInteraction)
         self.lbl_font_hint.setOpenExternalLinks(True)
 
-        # 클릭 시 탐색기에서 폴더 열림
         self.lbl_font_hint.setText(
             f'원하는 폰트를 추가하려면 '
             f'<a href="{file_url}">프로그램 설치 경로</a>에 원하는 폰트를 다운로드하세요.'
         )
 
-        # 실제 경로를 옅게 표시(선택)
         self.lbl_font_path = QtWidgets.QLabel(self.tab_display)
         self.lbl_font_path.setTextFormat(Qt.RichText)
         self.lbl_font_path.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.lbl_font_path.setStyleSheet("color:#888;")
         self.lbl_font_path.setText(f'경로: <code>{html.escape(native_path)}</code>')
 
-        # 라벨들은 설명성이라 라벨명 없이 한 줄씩 추가
         form.addRow(self.lbl_font_hint)
         form.addRow(self.lbl_font_path)
 
@@ -252,6 +247,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.edt_key.setText(self.mgr.gemini_api_key)
         # 폰트
         idx = self.cmb_font.findText(self.mgr.font_family, Qt.MatchFixedString)
+        self.chk_overlay.setChecked(self.mgr.use_overlay_layout)
         if idx >= 0:
             self.cmb_font.setCurrentIndex(idx)
         else:
@@ -286,8 +282,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self.mgr.set_system_prompt(self.txt_commands.toPlainText())
         self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
         self.mgr.set_font(self.cmb_font.currentText(), self.spn_font_size.value())
+        self.mgr.set_use_overlay_layout(self.chk_overlay.isChecked())
         self.mgr.save()
-
 
 # ---- 메인 윈도우 ----
 class MainWindow(QtWidgets.QMainWindow):
@@ -341,7 +337,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.menu_monitor = menubar.addMenu("모니터")
         self._refresh_monitor_menu()
 
-
     def _refresh_monitor_menu(self):
         self.menu_monitor.clear()
         screens = QtWidgets.QApplication.screens()
@@ -353,7 +348,6 @@ class MainWindow(QtWidgets.QMainWindow):
             act.triggered.connect(lambda checked, i=idx: self._select_monitor(i))
             self.menu_monitor.addAction(act)
 
-        # 수동 새로고침 액션
         self.menu_monitor.addSeparator()
         act_refresh = QtWidgets.QAction("새로고침", self)
         act_refresh.triggered.connect(self._refresh_monitor_menu)
@@ -372,7 +366,6 @@ class MainWindow(QtWidgets.QMainWindow):
         dlg.settingsSaved.connect(lambda: self.settingsUpdated.emit())
         dlg.exec_()
 
-    # --- 공개 메서드 (main.py에서 사용) ---
     def current_screen_geo(self) -> QtCore.QRect:
         screens = QtWidgets.QApplication.screens()
         if not screens:
