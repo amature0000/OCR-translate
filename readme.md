@@ -5,6 +5,28 @@ OCR-translator는 OCR을 이용해 화면의 텍스트를 추출 후 번역하�
 
 이 프로젝트는 [MORT](https://github.com/killkimno/MORT) 프로젝트로부터 영감을 받아 만들어졌으며, 해당 프로그램의 일부 기능을 수행합니다. 해당 프로젝트를 진행하고 유지해 주신 [monkeyhead](https://github.com/killkimno) 님께 감사드립니다.
 
+# How to use
+## Prerequisites
+- [번역 대상 윈도우 언어 팩](https://support.microsoft.com/ko-kr/windows/windows%EC%9A%A9-%EC%96%B8%EC%96%B4-%ED%8C%A9-a5094319-a92d-18de-5b53-1cfc697cfca8)
+- [gemini api 키](https://aistudio.google.com/api-keys)
+## Usage
+1. 설치 프로그램을 다운받아 실행한 후, 바탕화면에 생성된 바로가기를 실행합니다.
+2. 실행 시 뜨는 창에서 번역할 언어를 선택해 주세요.
+4. `번역하기` 버튼 또는 설정된 핫키를 눌러 화면을 캡처합니다.
+5. 프로그램 창에 한글로 번역된 결과가 출력되며, 프로그램 설정값에 따라 캡처 위치에 번역 결과를 오버레이로 표시합니다.
+
+**듀얼 모니터를 사용 중이라면, 메뉴 바의 모니터 탭을 통해 캡처할 모니터를 선택할 수 있습니다.**
+
+## Settings
+메뉴 바의 환경설정 탭을 통해 프로그램의 필수 설정값들을 수정할 수 있습니다.
+- 핫키: 캡처 단축키를 지정합니다
+- 프롬프트: LLM에게 OCR로 추출한 문장을 어떻게 처리할지 명령합니다.
+- API: **발급받은 API 키** 및 사용할 gemini 모델명을 작성하세요.
+- 폰트: 프로그램 설치 경로 `OCR Translate/app/fonts`에 원하는 폰트를 설치하여 적용할 수 있습니다.
+
+## System prompt
+환경설정의 프롬프트는 gemini가 전달받은 OCR 추출 텍스트를 기반으로 원하는 응답을 출력하도록 제어하는 명령어입니다. 해당 프롬프트는 상세한 지시 사항을 담고 있어야 하며, **"반드시 주어진 문장에 대한 번역만을 제공할 것" 이라는 지시 사항이 포함되어야 합니다**
+
 # MORT
 MORT는 사용자가 지정한 영역을 OCR(광학 문자 인식) 기술로 읽어 들인 뒤, 원하는 번역 API(예: DeepL, Papago, Google Translate 등)를 통해 실시간으로 번역 결과를 제공합니다.
 
