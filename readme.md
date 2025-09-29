@@ -3,7 +3,7 @@
 
 OCR-translator는 OCR을 이용해 화면의 텍스트를 추출 후 번역하는 간단한 프로그램입니다.
 
-이 프로젝트는 [MORT](https://github.com/killkimno/MORT) 프로젝트로부터 영감을 받아 만들어졌으며, 해당 프로그램의 일부 기능을 수행합니다. 해당 프로젝트를 진행하고 유지해 주신 [monkeyhead](https://github.com/killkimno) 님께 감사드립니다.
+이 프로젝트는 [MORT](https://github.com/killkimno/MORT) 프로젝트로부터 영감을 받아 만들어졌으며, 해당 프로그램의 일부 기능을 수행합니다.
 
 # How to use
 ## Prerequisites
