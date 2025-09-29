@@ -4,9 +4,7 @@ import threading
 
 from winsdk.windows.globalization import Language
 from winsdk.windows.media.ocr import OcrEngine
-from winsdk.windows.graphics.imaging import (
-    BitmapPixelFormat, SoftwareBitmap, BitmapAlphaMode
-)
+from winsdk.windows.graphics.imaging import BitmapPixelFormat, SoftwareBitmap, BitmapAlphaMode
 from winsdk.windows.storage.streams import DataWriter
 
 
@@ -39,6 +37,8 @@ def _pil_to_sbmp(pil_img: Image.Image) -> SoftwareBitmap:
         BitmapAlphaMode.IGNORE
     )
     return sbmp
+
+# ======================================================================
 
 _bg_loop = None
 _bg_thread = None
