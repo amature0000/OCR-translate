@@ -1,5 +1,5 @@
 import sys
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import Qt
 import mss
 from PIL import Image
@@ -26,6 +26,7 @@ def main():
     # 1) 설정 로드
     mgr = SettingsManager()
     w = MainWindow(mgr)
+    w.setWindowIcon(QtGui.QIcon("icon.ico"))
     w.show()
 
     # LLM 클라이언트
@@ -41,13 +42,12 @@ def main():
             except Exception: pass
             w.current_overlay = None
         if mgr.use_overlay_layout:
-            overlay = OverlayWindow(rect_global, "번역 중...", font_family=mgr.font_family, font_size=mgr.font_size)
+            overlay = OverlayWindow(rect_global, "", font_family=mgr.font_family, font_size=mgr.font_size)
             w.current_overlay = overlay
 
         img = capture_rect_global(rect_global)
         try:
             ocr_text = windows_ocr(img, w.get_lang_tag())
-            print(ocr_text)
             if not ocr_text: return
         except Exception as e:
             w.show_text(f"OCR 실패: {e}")
