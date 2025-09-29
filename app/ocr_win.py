@@ -40,42 +40,34 @@ def _pil_to_sbmp(pil_img: Image.Image) -> SoftwareBitmap:
     )
     return sbmp
 
-def _run_coro_sync(coro, timeout: float):
-    try:
-        asyncio.get_running_loop()
-        running = True
-    except RuntimeError:
-        running = False
+_bg_loop = None
+_bg_thread = None
 
-    if not running:
-        return asyncio.run(asyncio.wait_for(coro, timeout=timeout))
-
-    result_container = {"exc": None, "result": None}
+def _make_bg_loop():
+    global _bg_loop, _bg_thread
+    if _bg_loop is not None:
+        return _bg_loop
+    ready = threading.Event()
 
     def _worker():
-        try:
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
-            result = new_loop.run_until_complete(asyncio.wait_for(coro, timeout=timeout))
-            result_container["result"] = result
-        except Exception as e:
-            result_container["exc"] = e
-        finally:
-            try:
-                new_loop.close()
-            except Exception:
-                pass
+        global _bg_loop
+        _bg_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_bg_loop)
+        ready.set()
+        _bg_loop.run_forever()
+        _bg_loop.close()
 
-    t = threading.Thread(target=_worker, daemon=True)
-    t.start()
-    t.join(timeout + 1.0)
-    if t.is_alive():
-        raise TimeoutError("OCR 작업이 시간 초과로 종료되지 않았습니다.")
-    if result_container["exc"] is not None:
-        raise result_container["exc"]
-    return result_container["result"]
+    _bg_thread = threading.Thread(target=_worker, name="ocr-translator-OCRLOOP", daemon=True)
+    _bg_thread.start()
+    ready.wait()
+    return _bg_loop
 
-def windows_ocr(pil_img: Image.Image, lang_tag: str, timeout: float = 5.0) -> str:
+def _run_coro_sync(coro, timeout: float):
+    loop = _make_bg_loop()
+    fut = asyncio.run_coroutine_threadsafe(coro, loop)
+    return fut.result(timeout=timeout)
+
+def windows_ocr(pil_img: Image.Image, lang_tag: str, timeout: float = 3.0) -> str:
     async def _ocr_work():
         if not is_ocr_language_supported(lang_tag): return f"해당 언어팩 미설치됨{lang_tag}"
         engine = OcrEngine.try_create_from_language(Language(lang_tag))
