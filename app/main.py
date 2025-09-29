@@ -5,7 +5,7 @@ import mss
 from PIL import Image
 
 from ui_app import MainWindow
-from ocr_win import windows_ocr_sync
+from ocr_win import windows_ocr
 from hotkey_manager import WinHotkeyManager
 from settings import SettingsManager
 from overlay import OverlayWindow
@@ -46,9 +46,8 @@ def main():
 
         img = capture_rect_global(rect_global)
         try:
-            result = windows_ocr_sync(img, w.get_lang_tag())
-            lines = [ln.text for ln in result.lines]
-            ocr_text = ("\n".join(lines).strip())
+            ocr_text = windows_ocr(img, w.get_lang_tag())
+            print(ocr_text)
             if not ocr_text: return
         except Exception as e:
             w.show_text(f"OCR 실패: {e}")
