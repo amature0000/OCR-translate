@@ -112,7 +112,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         self.edt_hotkey = QtWidgets.QLineEdit()
         self.edt_hotkey.setPlaceholderText("예: ctrl+shift+f1 / alt+f12 / ctrl+s")
-        self.lbl_hotkey_hint = QtWidgets.QLabel("형식: 수정자(옵션)+키. 예) ctrl+shift+f1")
+        self.lbl_hotkey_hint = QtWidgets.QLabel("형식: (키)+(키). 예) ctrl+shift+f1")
         self.lbl_hotkey_hint.setStyleSheet("color: gray;")
 
         form.addRow("전역 핫키", self.edt_hotkey)
