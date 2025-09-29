@@ -115,7 +115,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.lbl_hotkey_hint = QtWidgets.QLabel("형식: (커맨드 키) + (키). 예) ctrl+shift+f1, ctrl+g")
         self.lbl_hotkey_hint.setStyleSheet("color: gray;")
 
-        form.addRow("전역 핫키", self.edt_hotkey)
+        form.addRow("핫키 설정", self.edt_hotkey)
         form.addRow(self.lbl_hotkey_hint)
 
     def _get_hotkey_combo_from_ui(self) -> str:
