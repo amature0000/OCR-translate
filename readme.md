@@ -48,4 +48,4 @@ OCR-translator 프로젝트는 이러한 문제점을 해결하기 위해 개발
 
 # Demonstration
 ![img](assets/Animation2.webp)
-![img](assets/img1.png)
+![img](assets/img.png)
