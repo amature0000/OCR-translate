@@ -137,7 +137,7 @@ class SettingsDialog(QtWidgets.QDialog):
         lbl_ttt = QtWidgets.QLabel("Text to Translate:")
         lbl_ttt.setStyleSheet("font-weight: 600;")
         
-        self.lbl_sample_text = QtWidgets.QLabel("OCR로 추출한 문장")
+        self.lbl_sample_text = QtWidgets.QLabel("캡처한 문장")
         
         self.lbl_sample_text.setStyleSheet(
             "border: 1px solid #d0d0d0; padding: 6px 8px; background: #fafafa; font-family: Consolas, 'Courier New', monospace;"

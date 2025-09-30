@@ -77,8 +77,8 @@ def windows_ocr(pil_img: Image.Image, lang_tag: str, timeout: float = 3.0) -> st
         sbmp = _pil_to_sbmp(pil_img)
 
         result = await engine.recognize_async(sbmp)
-
-        lines = [" ".join(w.text for w in line.words) for line in result.lines]
-        return "\n".join(lines).strip()
+        #lines = [" ".join(w.text for w in line.words) for line in result.lines]
+        #return "\n".join(lines).strip()
+        return " ".join(w.text for line in result.lines for w in line.words)
 
     return _run_coro_sync(_ocr_work(), timeout=timeout)

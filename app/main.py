@@ -55,7 +55,7 @@ def main():
         try:
             translated = llm.translate(ocr_text)
             if mgr.use_overlay_layout: overlay.set_text(translated)
-            w.show_text(translated)
+            w.show_text(translated + f"\n\n\n### 캡처한 원문:\n{ocr_text}")
         except LLMError as e:
             w.show_text(f"번역 실패: {e}")
     w.rectSelected.connect(on_rect_selected)
