@@ -3,7 +3,6 @@ from dataclasses import dataclass, asdict
 from typing import Optional
 from PyQt5 import QtGui
 
-
 APP_NAME = "OCR Translate"
 
 def _appdata_dir() -> str:
@@ -22,12 +21,13 @@ class AppSettings:
     # 2) 프롬프트
     system_prompt: str = (
         "너는 FPS 게임 Arena Breakout: Infinite의 공식 번역가다.\n"
-        "이름 등의 고유명사는 번역하지 말고 영문 그대로 제공하라.\n"
+        "이름, 지역 등의 고유명사는 번역하지 말고 반드시 영문 그대로 제공하거나 발음을 음차하라.\n"
         "UI 요소, 버튼, 설정 이름 등은 가능한 직역하고 의역하지 마라.\n"
         "아이템, 시스템 옵션, 미션 요구사항 등 인게임 시스템 메시지는 가벼운 경어체로 간결하고 직관적으로 번역하라.\n"
         "미션 스토리, NPC 대사, NPC 메시지, 대화 내용 등에 대해서는 경어체를 절대 사용하지 말고, 상황과 캐릭터에 맞는 자연스럽고 몰입감 있는 말투로 번역하라.\n"
         "NPC 대사에서는 존댓말(하세요, 입니다, 해주세요 등)을 절대 사용하지 말고, 반드시 반말이나 중립적인 구어체로 번역하라.\n"
         "출력 형식은 주어진 문장에 대한 한글 번역만을 담고 있어야 하며, 이외의 단어나 문장이 들어가서는 안 된다.\n"
+        "출력할 텍스트가 여러 문단으로 이루어진 경우, 빈 줄을 통해 문단을 구분하라."
     )
     # 3) API
     gemini_model: str = "gemini-2.5-flash-lite-preview-06-17"
