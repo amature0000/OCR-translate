@@ -111,15 +111,18 @@ class SettingsDialog(QtWidgets.QDialog):
         form = QtWidgets.QFormLayout(self.tab_hotkey)
 
         self.edt_hotkey = QtWidgets.QLineEdit()
-        self.edt_hotkey.setPlaceholderText("예: ctrl+shift+f1 / alt+f12 / ctrl+s")
+        self.edt_hotkey.setPlaceholderText("캡처 보드를 여는 핫키")
+        self.edt_hotkey_rem = QtWidgets.QLineEdit()
+        self.edt_hotkey_rem.setPlaceholderText("직전 캡처 영역을 그대로 다시 캡처하여 번역하는 핫키")
+        self.chk_overlay_0 = QtWidgets.QCheckBox("스크롤 인식: 이전에 캡처한 문장과 겹치는 경우, 두 문장을 합쳐서 번역합니다.")
+        self.chk_overlay_0.setToolTip("직전 번역 기록과 겹치는 문장을 캡처하면, 이전 문장과 합쳐서 번역합니다.")
         self.lbl_hotkey_hint = QtWidgets.QLabel("형식: (커맨드 키) + (키). 예) ctrl+shift+f1, ctrl+g")
         self.lbl_hotkey_hint.setStyleSheet("color: gray;")
 
-        form.addRow("핫키 설정", self.edt_hotkey)
+        form.addRow("캡처 핫키", self.edt_hotkey)
+        form.addRow("재번역 핫키", self.edt_hotkey_rem)
+        form.addRow("", self.chk_overlay_0)
         form.addRow(self.lbl_hotkey_hint)
-
-    def _get_hotkey_combo_from_ui(self) -> str:
-        return self.edt_hotkey.text().strip()
 
     # --- 프롬프트 ---
     def _build_tab_prompt(self):
@@ -240,6 +243,8 @@ class SettingsDialog(QtWidgets.QDialog):
     def _load_values(self):
         # 핫키
         self.edt_hotkey.setText(self.mgr.hotkey_combo)
+        self.edt_hotkey_rem.setText(self.mgr.hotkey_rem_combo)
+        self.chk_overlay_0.setChecked(self.mgr.use_scroll_detect)
         # Commands
         self.txt_commands.setPlainText(self.mgr.system_prompt)
         # API
@@ -273,12 +278,15 @@ class SettingsDialog(QtWidgets.QDialog):
         defaults = SettingsManager.default_settings()
         # UI에 기본값 주입
         self.edt_hotkey.setText(defaults.hotkey_combo)
+        self.edt_hotkey_rem.setText(defaults.hotkey_rem_combo)
         self.txt_commands.setPlainText(defaults.system_prompt)
         self.edt_model.setText(defaults.gemini_model)
         self.edt_key.setText(defaults.gemini_api_key)
 
     def _apply_to_manager(self):
         self.mgr.set_hotkey_combo(self.edt_hotkey.text().strip())
+        self.mgr.set_hotkey_rem_combo(self.edt_hotkey_rem.text().strip())
+        self.mgr.set_use_scroll_detect(self.chk_overlay_0.isChecked())
         self.mgr.set_system_prompt(self.txt_commands.toPlainText())
         self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
         self.mgr.set_font(self.cmb_font.currentText(), self.spn_font_size.value())
@@ -299,6 +307,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.selected_screen_idx: int = 0
         self.sel_overlay: Optional[SelectionOverlay] = None
         self.current_overlay = None
+        self.last_selection_rect = None
 
         # 중앙 UI
         central = QtWidgets.QWidget(); v = QtWidgets.QVBoxLayout(central)
@@ -391,6 +400,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statusBar().showMessage(
             f"모니터 {self.selected_screen_idx+1}: 드래그하여 영역 선택 (ESC 취소)"
         )
+    
+    @QtCore.pyqtSlot()
+    def run_last_rect(self):
+        r = self.last_selection_rect
+        if not r or r.isNull() or r.width() <= 0 or r.height() <= 0:
+            self.show_text("이전에 캡처한 영역이 존재하지 않습니다.")
+            return
+        self.rectSelected.emit(r)
 
     def _relay_rect_selected(self, rect_global: QtCore.QRect):
         self.rectSelected.emit(rect_global)

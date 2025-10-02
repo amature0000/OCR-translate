@@ -18,6 +18,8 @@ ASSET_FONTS_DIR = os.path.join(os.path.dirname(__file__), "fonts")
 class AppSettings:
     # 1) 핫키
     hotkey_combo: str = "ctrl+shift+c"
+    hotkey_rem_combo: str = ""
+    use_scroll_detect: bool = True
     # 2) 프롬프트
     system_prompt: str = (
         "너는 FPS 게임 Arena Breakout: Infinite의 공식 번역가다.\n"
@@ -92,6 +94,14 @@ class SettingsManager:
     @property
     def hotkey_combo(self) -> str:
         return self._settings.hotkey_combo
+    
+    @property
+    def hotkey_rem_combo(self) -> str:
+        return self._settings.hotkey_rem_combo
+    
+    @property
+    def use_scroll_detect(self) -> bool:
+        return self._settings.use_scroll_detect
 
     @property
     def system_prompt(self) -> str:
@@ -127,6 +137,12 @@ class SettingsManager:
             raise ValueError("핫키는 'ctrl+shift+f1' 형식이어야 합니다.")
         self._settings.hotkey_combo = combo
 
+    def set_hotkey_rem_combo(self, combo: str):
+        self._settings.hotkey_rem_combo = combo
+
+    def set_use_scroll_detect(self, enabled: bool):
+        self._settings.use_scroll_detect = bool(enabled)
+
     def set_system_prompt(self, prompt: str):
         self._settings.system_prompt = prompt or ""
 
@@ -147,12 +163,14 @@ class SettingsManager:
     def set_use_overlay_layout(self, enabled: bool):
         self._settings.use_overlay_layout = bool(enabled)
 
-    def update(self, *, hotkey_combo: Optional[str]=None, system_prompt: Optional[str]=None,
-               gemini_model: Optional[str]=None, gemini_api_key: Optional[str]=None,
-               font_family: Optional[str]=None, font_size: Optional[int]=None,
-               use_overlay_layout: Optional[bool]=None):
+    def update(self, *, hotkey_combo: Optional[str]=None, hotkey_rem_combo: Optional[str]=None,
+               system_prompt: Optional[str]=None, gemini_model: Optional[str]=None,
+               gemini_api_key: Optional[str]=None, font_family: Optional[str]=None,
+               font_size: Optional[int]=None, use_overlay_layout: Optional[bool]=None):
         if hotkey_combo is not None:
             self.set_hotkey_combo(hotkey_combo)
+        if hotkey_rem_combo is not None:
+            self.set_hotkey_rem_combo(hotkey_rem_combo)
         if system_prompt is not None:
             self.set_system_prompt(system_prompt)
         if gemini_model is not None or gemini_api_key is not None:
