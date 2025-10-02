@@ -70,12 +70,18 @@ def main():
         except Exception as e:
             w.show_text(f"OCR 실패: {e}")
             return
-
+        
         if mgr.use_scroll_detect and before_ocr_text != None:
-            temp = ocr_text + "궯" + before_ocr_text
-            temp_len = _prefix_function(temp)[-1]
-            if temp_len >= 5:
-                ocr_text = before_ocr_text + ocr_text[temp_len:]
+            index = 0
+            maxlen = len(ocr_text) - 7
+            while index <= maxlen:
+                temp = ocr_text[index:] + "궯" + before_ocr_text
+                temp_len = _prefix_function(temp)[-1]
+                if temp_len >= 7: break
+                index += 1
+                
+            if temp_len >= 7:
+                ocr_text = before_ocr_text + ocr_text[index+temp_len:]
         before_ocr_text = ocr_text
 
         try:
