@@ -1,6 +1,6 @@
 [Setup]
 AppName=OCR Translator
-AppVersion=1.0.0
+AppVersion=1.3.0
 DefaultDirName={userappdata}\Programs\OCR Translate
 DefaultGroupName=OCR Translate
 OutputBaseFilename=OCR-Translator-Setup
