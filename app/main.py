@@ -102,7 +102,7 @@ def main():
         ok1 = True
         ok2 = True
         # hotkey 1
-        if before_hk_key != mgr.hotkey_combo: 
+        if before_hk_key != mgr.hotkey_combo and mgr.hotkey_combo: 
             ok1 = None
             if hk is not None:
                 hk.stop(); hk = None
@@ -115,7 +115,7 @@ def main():
             before_hk_key = mgr.hotkey_combo
 
         # hotkey 2
-        if before_hk_rem_key != mgr.hotkey_rem_combo: 
+        if before_hk_rem_key != mgr.hotkey_rem_combo and mgr.hotkey_rem_combo: 
             ok2 = None
             if hk_rem is not None:
                 hk_rem.stop(); hk_rem = None

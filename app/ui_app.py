@@ -279,9 +279,11 @@ class SettingsDialog(QtWidgets.QDialog):
         # UI에 기본값 주입
         self.edt_hotkey.setText(defaults.hotkey_combo)
         self.edt_hotkey_rem.setText(defaults.hotkey_rem_combo)
+        self.chk_overlay_0.setChecked(defaults.use_scroll_detect)
         self.txt_commands.setPlainText(defaults.system_prompt)
         self.edt_model.setText(defaults.gemini_model)
         self.edt_key.setText(defaults.gemini_api_key)
+        self.chk_overlay.setChecked(defaults.use_overlay_layout)
 
     def _apply_to_manager(self):
         self.mgr.set_hotkey_combo(self.edt_hotkey.text().strip())

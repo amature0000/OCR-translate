@@ -133,8 +133,6 @@ class SettingsManager:
     
     # ---------- setters ----------
     def set_hotkey_combo(self, combo: str):
-        if not combo or "+" not in combo:
-            raise ValueError("핫키는 'ctrl+shift+f1' 형식이어야 합니다.")
         self._settings.hotkey_combo = combo
 
     def set_hotkey_rem_combo(self, combo: str):
