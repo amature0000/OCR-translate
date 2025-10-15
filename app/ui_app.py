@@ -414,12 +414,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def _relay_rect_selected(self, rect_global: QtCore.QRect):
         self.close_overlays()
 
-        def clean_after_emit():
-            self.rectSelected.emit(rect_global)
-            QtCore.QTimer.singleShot(0, lambda: self.close_overlays(True))
-
         QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
-        QtCore.QTimer.singleShot(30, clean_after_emit)
+        QtCore.QTimer.singleShot(30, lambda: self.rectSelected.emit(rect_global))
     
     def close_overlays(self, hard = False):
         if self.sel_overlay:
@@ -427,12 +423,13 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.sel_overlay.hide()
                 if hard: 
                     self.sel_overlay.close()
-                    self.sel_overlay.deleteLater()
                     self.sel_overlay = None
             except Exception: pass
+            print("close capture overlay")
         if getattr(self, "current_overlay", None):
             try: self.current_overlay.close()
             except Exception: pass
+            print("close overlay")
             self.current_overlay = None
 
     def get_lang_tag(self) -> str:
