@@ -386,14 +386,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def start_capture(self):
-        if self.sel_overlay:
-            try: self.sel_overlay.close()
-            except Exception: pass
-            self.sel_overlay = None
+        self.close_overlays(True)
 
         monitor_geo = self.current_screen_geo()
-        self.sel_overlay = SelectionOverlay(monitor_geo)
-        self.sel_overlay.selected.connect(self._relay_rect_selected)
+        self.sel_overlay = SelectionOverlay(monitor_geo) # 캡처 보드 호출
+        self.sel_overlay.selected.connect(self._relay_rect_selected) # 영역 선택시 호출
         self.sel_overlay.cancelled.connect(lambda: self.statusBar().showMessage("취소됨", 2000))
 
         self.sel_overlay.showFullScreen()
@@ -409,10 +406,34 @@ class MainWindow(QtWidgets.QMainWindow):
         if not r or r.isNull() or r.width() <= 0 or r.height() <= 0:
             self.show_text("이전에 캡처한 영역이 존재하지 않습니다.")
             return
-        self.rectSelected.emit(r)
+        self.close_overlays()
+
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+        QtCore.QTimer.singleShot(20, lambda: self.rectSelected.emit(r))
 
     def _relay_rect_selected(self, rect_global: QtCore.QRect):
-        self.rectSelected.emit(rect_global)
+        self.close_overlays()
+
+        def clean_after_emit():
+            self.rectSelected.emit(rect_global)
+            QtCore.QTimer.singleShot(0, lambda: self.close_overlays(True))
+
+        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents)
+        QtCore.QTimer.singleShot(30, clean_after_emit)
+    
+    def close_overlays(self, hard = False):
+        if self.sel_overlay:
+            try: 
+                self.sel_overlay.hide()
+                if hard: 
+                    self.sel_overlay.close()
+                    self.sel_overlay.deleteLater()
+                    self.sel_overlay = None
+            except Exception: pass
+        if getattr(self, "current_overlay", None):
+            try: self.current_overlay.close()
+            except Exception: pass
+            self.current_overlay = None
 
     def get_lang_tag(self) -> str:
         return self.lang.currentText()
