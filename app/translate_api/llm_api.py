@@ -48,8 +48,7 @@ class LLMClient:
     def _configure(self):
         api_key = (self._settings.gemini_api_key or "").strip()
         model_name = (self._settings.gemini_model or "").strip()
-        sys_prompt = (self._settings.system_prompt or "").strip()
-
+        sys_prompt = (self._settings.get_preset() or "").strip()
         genai.configure(api_key=api_key)
         # system_instruction 에 Commands 내용을 그대로 넣음
         self._model = genai.GenerativeModel(

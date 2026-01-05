@@ -77,8 +77,8 @@ class SettingsDialog(QtWidgets.QDialog):
         self._build_tab_hotkey()
 
         # Tab 2: 프롬프트
-        self.tab_prompt = QtWidgets.QWidget(); self.tabs.addTab(self.tab_prompt, "프롬프트")
-        self._build_tab_prompt()
+        self.tab_prompts = QtWidgets.QWidget(); self.tabs.addTab(self.tab_prompts, "프롬프트")
+        self._build_tab_prompts()
 
         # Tab 3: API
         self.tab_api = QtWidgets.QWidget(); self.tabs.addTab(self.tab_api, "API")
@@ -126,36 +126,118 @@ class SettingsDialog(QtWidgets.QDialog):
         form.addRow(self.lbl_hotkey_hint)
 
     # --- 프롬프트 ---
-    def _build_tab_prompt(self):
-        lay = QtWidgets.QVBoxLayout(self.tab_prompt)
-        lay.setContentsMargins(12, 12, 12, 12)
-        lay.setSpacing(8)
-        lbl_head = QtWidgets.QLabel("LLM에 다음과 같이 전달됩니다.")
+    def _build_tab_prompts(self):
+        root = QtWidgets.QVBoxLayout(self.tab_prompts)
 
-        lbl_cmd = QtWidgets.QLabel("Commands:")
-        lbl_cmd.setStyleSheet("font-weight: 600;")
-        self.txt_commands = QtWidgets.QPlainTextEdit()
-        self.txt_commands.setPlaceholderText("")
-        self.txt_commands.setMinimumHeight(160)
+        split = QtWidgets.QHBoxLayout()
+        root.addLayout(split, 1)
 
-        lbl_ttt = QtWidgets.QLabel("Text to Translate:")
-        lbl_ttt.setStyleSheet("font-weight: 600;")
-        
-        self.lbl_sample_text = QtWidgets.QLabel("캡처한 문장")
-        
-        self.lbl_sample_text.setStyleSheet(
-            "border: 1px solid #d0d0d0; padding: 6px 8px; background: #fafafa; font-family: Consolas, 'Courier New', monospace;"
+        # 프리셋 리스트
+        left = QtWidgets.QVBoxLayout()
+        self.lst_presets = QtWidgets.QListWidget()
+        self.lst_presets.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        left.addWidget(self.lst_presets, 1)
+        split.addLayout(left, 1)
+
+        # 프리셋 에디터
+        right_form = QtWidgets.QFormLayout()
+        self.edt_preset_name = QtWidgets.QLineEdit()
+        self.txt_system_prompt = QtWidgets.QPlainTextEdit()
+        self.txt_system_prompt.setTabChangesFocus(False)
+        right_form.addRow("이름", self.edt_preset_name)
+        right_form.addRow("시스템 프롬프트", self.txt_system_prompt)
+        right_wrap = QtWidgets.QWidget()
+        right_wrap.setLayout(right_form)
+        split.addWidget(right_wrap, 2)
+
+        # 버튼
+        btn_row = QtWidgets.QHBoxLayout()
+        self.btn_preset_add = QtWidgets.QPushButton("추가")
+        self.btn_preset_del = QtWidgets.QPushButton("삭제")
+        self.btn_preset_apply = QtWidgets.QPushButton("적용")
+        btn_row.addStretch(1)
+        btn_row.addWidget(self.btn_preset_add)
+        btn_row.addWidget(self.btn_preset_del)
+        btn_row.addWidget(self.btn_preset_apply)
+        root.addLayout(btn_row)
+
+        # =======
+        def _current_preset_id():
+            it = self.lst_presets.currentItem()
+            return it.data(QtCore.Qt.UserRole) if it else None
+
+        def _load_preset_to_editor(pid: str):
+            p = next((x for x in self.mgr.list_presets() if x.id == pid), None)
+            if not p:
+                self.edt_preset_name.clear()
+                self.txt_system_prompt.clear()
+                return
+            self.edt_preset_name.setText(p.name)
+            self.txt_system_prompt.setPlainText(p.system_prompt)
+
+        def _refresh_list(select_pid: str | None = None):
+            self.lst_presets.clear()
+            active_id = self.mgr._settings.active_preset_id
+            for p in self.mgr.list_presets():
+                text = p.name + ("  •활성" if p.id == active_id else "")
+                it = QtWidgets.QListWidgetItem(text)
+                it.setData(QtCore.Qt.UserRole, p.id)
+                self.lst_presets.addItem(it)
+            
+            if select_pid:
+                for i in range(self.lst_presets.count()):
+                    it = self.lst_presets.item(i)
+                    if it.data(QtCore.Qt.UserRole) == select_pid:
+                        self.lst_presets.setCurrentItem(it)
+                        break
+            elif self.lst_presets.count():
+                self.lst_presets.setCurrentRow(0)
+
+            cur = _current_preset_id()
+            if cur: _load_preset_to_editor(cur)
+            else:
+                self.edt_preset_name.clear()
+                self.txt_system_prompt.clear()
+
+        _refresh_list()
+
+        # 리스트 변경 시
+        self.lst_presets.currentItemChanged.connect(
+            lambda it, prev: _load_preset_to_editor(it.data(QtCore.Qt.UserRole)) if it else None
         )
 
-        # 배치
-        lay.addWidget(lbl_head)
-        lay.addWidget(lbl_cmd)
-        lay.addWidget(self.txt_commands)
-        lay.addSpacing(6)
-        lay.addWidget(lbl_ttt)
-        lay.addWidget(self.lbl_sample_text)
-        lay.addStretch(1)
+        # ==========
+        def on_add():
+            name = (self.edt_preset_name.text() or "").strip() or "새 프리셋"
+            body = self.txt_system_prompt.toPlainText()
+            p = self.mgr.add_preset(name, body)
+            _refresh_list(select_pid=p.id)
+            self.settingsSaved.emit()
 
+        def on_del():
+            pid = _current_preset_id()
+            if not pid:
+                QtWidgets.QMessageBox.information(self, "오류", "삭제할 프리셋을 선택하세요.")
+                return
+            self.mgr.delete_preset(pid)
+            _refresh_list()
+            self.settingsSaved.emit()
+
+        def on_apply():
+            pid = _current_preset_id()
+            if not pid:
+                QtWidgets.QMessageBox.information(self, "오류", "적용할 프리셋을 선택하세요.")
+                return
+            name = (self.edt_preset_name.text() or "").strip() or "이름 없음"
+            body = self.txt_system_prompt.toPlainText()
+            self.mgr.update_preset(pid, name=name, system_prompt=body)
+            self.mgr.set_preset(pid)
+            _refresh_list(select_pid=pid)
+            self.settingsSaved.emit()
+
+        self.btn_preset_add.clicked.connect(on_add)
+        self.btn_preset_del.clicked.connect(on_del)
+        self.btn_preset_apply.clicked.connect(on_apply)
     # --- API ---
     def _build_tab_api(self):
         form = QtWidgets.QFormLayout(self.tab_api)
@@ -271,8 +353,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.edt_hotkey.setText(self.mgr.hotkey_combo)
         self.edt_hotkey_rem.setText(self.mgr.hotkey_rem_combo)
         self.chk_overlay_0.setChecked(self.mgr.use_scroll_detect)
-        # Commands
-        self.txt_commands.setPlainText(self.mgr.system_prompt)
         # API
         self.edt_model.setText(self.mgr.gemini_model)
         self.edt_key.setText(self.mgr.gemini_api_key)
@@ -316,7 +396,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.edt_hotkey.setText(defaults.hotkey_combo)
         self.edt_hotkey_rem.setText(defaults.hotkey_rem_combo)
         self.chk_overlay_0.setChecked(defaults.use_scroll_detect)
-        self.txt_commands.setPlainText(defaults.system_prompt)
         self.edt_model.setText(defaults.gemini_model)
         self.edt_key.setText(defaults.gemini_api_key)
         self.api_chk_0.setChecked(defaults.use_google_api)
@@ -334,7 +413,6 @@ class SettingsDialog(QtWidgets.QDialog):
         self.mgr.set_hotkey_combo(self.edt_hotkey.text().strip())
         self.mgr.set_hotkey_rem_combo(self.edt_hotkey_rem.text().strip())
         self.mgr.set_use_scroll_detect(self.chk_overlay_0.isChecked())
-        self.mgr.set_system_prompt(self.txt_commands.toPlainText())
         self.mgr.set_gemini(self.edt_model.text().strip(), self.edt_key.text())
         self.mgr.set_use_google_api(self.api_chk_0.isChecked())
         self.mgr.set_font(self.cmb_font.currentText(), self.spn_font_size.value())
