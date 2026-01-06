@@ -17,10 +17,7 @@ SOTE는 OCR을 이용해 화면 상의 텍스트를 캡처한 후, 사용자 설
 - [gemini api 키](https://aistudio.google.com/api-keys) (optional)
 ## Usage
 ### [사용법 설명 링크](https://reinvented-oak-967.notion.site/SOTA-User-guide-2a14a4ebe77b801daf96f3de73345b7c)
-1. 설치 프로그램을 다운받아 실행한 후, 바탕화면에 생성된 바로가기를 실행합니다.
-2. 실행 시 뜨는 창에서 번역할 언어를 선택해 주세요.
-3. `번역하기` 버튼 또는 설정된 단축키를 눌러 화면을 캡처합니다.
-4. 프로그램 창에 한글로 번역된 결과가 출력되며, 프로그램 설정값에 따라 캡처 위치에 번역 결과를 오버레이로 표시합니다.
+- AI 번역을 사용하기 위해선 발급받은 API 키를 환경설정의 `API` 탭에 입력해야 합니다.
 
 
 ## System prompt
