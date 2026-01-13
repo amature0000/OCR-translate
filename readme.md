@@ -1,6 +1,5 @@
 [![GitHub downloads](https://img.shields.io/github/downloads/amature0000/SOTE/total.svg?logo=github)](https://github.com/amature0000/SOTE/releases)
 
-![img](assets/Animation3.webp)
 
 SOTE(Simple OCR-Translate for Everything)는 OCR을 이용해 화면의 텍스트를 추출 후 번역하는 간단한 프로그램입니다.
 
@@ -22,3 +21,6 @@ SOTE는 OCR을 이용해 화면 상의 텍스트를 캡처한 후, 사용자 설
 
 ## System prompt
 프롬프트는 상세한 지시 사항을 담고 있어야 하며, **"반드시 주어진 문장에 대한 번역만을 제공할 것" 이라는 지시 사항이 명확하게 포함되어야 합니다**
+
+
+![img](assets/Animation3.webp)
