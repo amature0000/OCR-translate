@@ -11,9 +11,15 @@ WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
 SetupIconFile=app\icon.ico
 
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\python"
+
 [Files]
 Source: "Python\*"; DestDir: "{app}\python"; Flags: recursesubdirs
 Source: "app\*"; DestDir: "{app}\app"; Flags: recursesubdirs
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}"
 
 [Run]
 ; 1) pip 설치
